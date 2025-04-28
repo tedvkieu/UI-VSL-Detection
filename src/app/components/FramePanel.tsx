@@ -5,7 +5,7 @@ interface ResultPanelProps {
 }
 
 export default function FramePanel({ result }: ResultPanelProps) {
-    console.log('ResultPanel nhận được kết quả: ', result);
+ 
 
     return (
         <>

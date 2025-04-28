@@ -4,12 +4,17 @@ export interface Landmark {
     z: number;
 }
 
+export interface HandClassification {
+    label: 'Left' | 'Right';
+    score: number;
+}
+
+export interface Handedness {
+    label: 'Left' | 'Right';
+}
+
 export interface HandsResults {
-    image:
-        | HTMLCanvasElement
-        | HTMLVideoElement
-        | HTMLImageElement
-        | ImageBitmap;
-    multiHandLandmarks?: Landmark[][];
-    multiHandedness?: { label: 'Left' | 'Right' }[];
+    image: HTMLCanvasElement;
+    multiHandLandmarks: Landmark[][];
+    multiHandedness: Handedness[];
 }

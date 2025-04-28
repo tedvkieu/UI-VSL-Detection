@@ -24,13 +24,22 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
-                {/* Thêm Mediapipe camera_utils từ CDN */}
+                {/* Load MediaPipe libraries in the correct order */}
                 <script
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
-                    async></script>
+                    defer></script>
                 <script
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
-                    async></script>
+                    defer></script>
+                <script
+                    src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+                    defer></script>
+                <script
+                    src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+                    defer></script>
+                <script
+                    src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js"
+                    defer></script>
             </head>
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}>

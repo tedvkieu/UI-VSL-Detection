@@ -1,18 +1,12 @@
 import { MutableRefObject } from 'react';
+import { Results, Handedness } from '@mediapipe/hands';
 
-interface HandsResults {
-    image:
-        | HTMLCanvasElement
-        | HTMLVideoElement
-        | HTMLImageElement
-        | ImageBitmap;
-    multiHandLandmarks?: any[][];
-    multiHandedness?: { label: 'Left' | 'Right' }[];
-}
+// Define a type that matches the MediaPipe Results interface
+type MediaPipeResults = Results;
 
 export function useMediapipe(
     videoRef: MutableRefObject<HTMLVideoElement | null>,
-    onResults: (results: HandsResults) => void
+    onResults: (results: Results) => void
 ) {
     const initMediapipe = async () => {
         if (!window.Hands || !videoRef.current) return;

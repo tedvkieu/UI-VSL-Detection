@@ -1,11 +1,18 @@
 export class WebSocketService {
     private socket: WebSocket | null = null;
+    private messageQueue: unknown[] = [];
 
     connect(url: string, onMessage: (msg: unknown) => void) {
         this.socket = new WebSocket(url);
 
         this.socket.onopen = () => {
             console.log('✅ Đã kết nối WebSocket');
+
+            // Gửi hết các message đã queue khi socket mở
+            this.messageQueue.forEach((data) => {
+                this.socket?.send(JSON.stringify(data));
+            });
+            this.messageQueue = [];
         };
 
         this.socket.onmessage = (event) => {
@@ -30,8 +37,15 @@ export class WebSocketService {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(data));
         } else {
-            console.warn('⚠️ WebSocket chưa sẵn sàng để gửi dữ liệu');
+            console.warn(
+                '⚠️ WebSocket chưa sẵn sàng, đưa vào queue để gửi sau'
+            );
+            this.messageQueue.push(data);
         }
+    }
+
+    isOpen() {
+        return this.socket?.readyState === WebSocket.OPEN;
     }
 
     close() {
