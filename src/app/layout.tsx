@@ -14,6 +14,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
     title: 'Hand Tracking',
     description: 'Realtime Mediapipe Hand Tracking',
+    icons: {
+        icon: '/taytalk-logo_3.svg', // hoặc /favicon.ico
+    },
 };
 
 export default function RootLayout({

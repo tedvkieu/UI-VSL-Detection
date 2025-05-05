@@ -6,7 +6,7 @@ interface ResultPanelProps {
     clearSignal?: boolean; // Tín hiệu xóa từ component cha
 }
 
-const ResultPanel: React.FC<ResultPanelProps> = ({
+const ResultPanelAI: React.FC<ResultPanelProps> = ({
     result,
     label,
     clearSignal,
@@ -38,41 +38,17 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
     }, [clearSignal]);
 
     // Generate a unique color for each result
-    const getResultColor = (index: number) => {
-        const colors = [
-            'text-indigo-600',
-            'text-purple-600',
-            'text-blue-600',
-            'text-green-600',
-            'text-teal-600',
-            'text-cyan-600',
-        ];
-        return colors[index % colors.length];
-    };
-
-    const handleRemoveFadeIn = () => {
-        setResults((prevResults) => {
-            const newResults = [...prevResults];
-            newResults.pop(); // Xoá phần tử fadeIn hiện tại
-
-            // Nếu còn phần tử, set lại fadeIn để hiện phần tử cuối
-            if (newResults.length > 0) {
-                const popped = newResults.pop(); // Lấy phần tử cuối để hiện lại
-                if (popped) {
-                    // Thêm lại phần tử cuối để làm fadeIn mới
-                    setTimeout(() => {
-                        setFadeIn(true);
-                        setTimeout(() => setFadeIn(false), 600);
-                    }, 0);
-                    return [...newResults, popped];
-                }
-            }
-
-            return newResults;
-        });
-    };
-
-    const currentResult = results[results.length - 1];
+    // const getResultColor = (index: number) => {
+    //     const colors = [
+    //         'text-indigo-600',
+    //         'text-purple-600',
+    //         'text-blue-600',
+    //         'text-green-600',
+    //         'text-teal-600',
+    //         'text-cyan-600',
+    //     ];
+    //     return colors[index % colors.length];
+    // };
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 text-sm min-h-[100px] transition-all">
@@ -85,7 +61,7 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
 
                 {results.length > 0 ? (
                     <div className="w-full space-y-2">
-                        {results.length > 1 && (
+                        {/* {results.length > 1 && (
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {results.slice(0, -1).map((res, idx) => (
                                     <span
@@ -93,26 +69,20 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
                                         className={`${getResultColor(
                                             idx
                                         )} bg-gray-50 text-sm px-3 py-1 rounded-full`}>
-                                        {res}
+                                        Đây là nội dung từ AI
                                     </span>
                                 ))}
                             </div>
-                        )}
+                        )} */}
 
                         <div
-                            className={`w-full relative ${
+                            className={`w-full ${
                                 fadeIn ? 'animate-fade-in' : ''
                             }`}>
-                            <div className="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500 flex justify-between items-center">
+                            <div className="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
                                 <span className="font-medium text-indigo-800 text-lg">
-                                    {currentResult}
+                                    {results[results.length - 1]}
                                 </span>
-                                <button
-                                    onClick={handleRemoveFadeIn}
-                                    className="text-red-500 hover:text-red-700 ml-4"
-                                    title="Xoá kết quả mới nhất">
-                                    Clear
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -126,4 +96,4 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
     );
 };
 
-export default ResultPanel;
+export default ResultPanelAI;
