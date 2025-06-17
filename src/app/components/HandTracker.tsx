@@ -29,7 +29,6 @@ export default function HandTracker({
     framesDataRef,
     setFramesData,
     ws,
-    sendFrames,
 }: HandTrackerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -74,7 +73,9 @@ export default function HandTracker({
                     // Không thấy tay đủ lâu → kết thúc thu
                     hasHandsRef.current = false;
                     setIsRecording(false);
-                    setResult(`Đã thu thập ${framesDataRef.current.length} frames. Nhấn nút Lưu để lưu dữ liệu.`);
+                    setResult(
+                        `Đã thu thập ${framesDataRef.current.length} frames. Nhấn nút Lưu để lưu dữ liệu.`
+                    );
                 } else {
                     setResult(
                         `Đang kiểm tra... (${noHandsFrameCountRef.current}/${MISSING_THRESHOLD})`

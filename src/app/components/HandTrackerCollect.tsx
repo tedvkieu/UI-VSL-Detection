@@ -17,12 +17,10 @@ interface HandTrackerCollectProps {
 }
 
 export default function HandTrackerCollect({
-    isRecording,
     setIsRecording,
     setResult,
     frameCountRef,
     hasHandsRef,
-    noHandsFrameCountRef,
     framesDataRef,
     setFramesData,
 }: HandTrackerCollectProps) {
@@ -82,7 +80,7 @@ export default function HandTrackerCollect({
                 const handedness = results.multiHandedness[i];
                 const label = handedness.label;
                 const coords: number[] = [];
-                
+
                 for (const point of landmarks) {
                     coords.push(1 - point.x, point.y, point.z);
                 }
@@ -95,9 +93,8 @@ export default function HandTrackerCollect({
             }
         }
 
-        return [...rightHand,...leftHand];
+        return [...rightHand, ...leftHand];
     };
-
 
     const drawHandLandmarks = (
         results: Results,
@@ -107,7 +104,8 @@ export default function HandTrackerCollect({
         if (!results.multiHandLandmarks) return;
 
         results.multiHandLandmarks.forEach((landmarks: any, index: number) => {
-            const handedness = results.multiHandedness?.[index]?.label ?? 'Right';
+            const handedness =
+                results.multiHandedness?.[index]?.label ?? 'Right';
             const color = handedness === 'Left' ? [0, 255, 0] : [255, 0, 0];
 
             ctx.strokeStyle = 'white';
@@ -118,16 +116,29 @@ export default function HandTrackerCollect({
                     const endPt = landmarks[end];
 
                     ctx.beginPath();
-                    ctx.moveTo(startPt.x * canvas.width, startPt.y * canvas.height);
+                    ctx.moveTo(
+                        startPt.x * canvas.width,
+                        startPt.y * canvas.height
+                    );
                     ctx.lineTo(endPt.x * canvas.width, endPt.y * canvas.height);
                     ctx.stroke();
                 }
             }
 
             for (const pt of landmarks) {
-                if (pt && typeof pt.x === 'number' && typeof pt.y === 'number') {
+                if (
+                    pt &&
+                    typeof pt.x === 'number' &&
+                    typeof pt.y === 'number'
+                ) {
                     ctx.beginPath();
-                    ctx.arc(pt.x * canvas.width, pt.y * canvas.height, 5, 0, 2 * Math.PI);
+                    ctx.arc(
+                        pt.x * canvas.width,
+                        pt.y * canvas.height,
+                        5,
+                        0,
+                        2 * Math.PI
+                    );
                     ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
                     ctx.fill();
                 }
@@ -151,4 +162,4 @@ export default function HandTrackerCollect({
             />
         </div>
     );
-} 
+}

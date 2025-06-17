@@ -32,7 +32,13 @@ function isLabelMessage(msg: unknown): msg is LabelMessage {
 }
 
 export default function Home() {
-    const [resultWebSocket, setResultWebSocket] = useState<string>('');
+    // Thay đổi: Sử dụng object với timestamp và counter
+    const [resultWebSocket, setResultWebSocket] = useState<{
+        label: string;
+        timestamp: number;
+        counter: number;
+    } | null>(null);
+    
     const [resultTracking, setResultTracking] = useState<string>(
         'Đang chờ dữ liệu...'
     );
@@ -52,6 +58,30 @@ export default function Home() {
 
     const [aiGeneratedText, setAiGeneratedText] = useState<string>('');
 
+    // Thay đổi: useEffect sẽ luôn chạy vì resultWebSocket luôn là object mới
+    useEffect(() => {
+        if (!resultWebSocket) return;
+
+        console.log("Processing new result:", resultWebSocket);
+        setResults((prevResults) => {
+            // Luôn thêm kết quả mới vào, không kiểm tra trùng lặp
+            const updated = [...prevResults, resultWebSocket.label];
+            console.log("Updated results:", updated);
+            callAI(updated);
+            return updated;
+        });
+    }, [resultWebSocket]);
+
+    // Thêm handler cho việc thay đổi kết quả từ ResultPanel
+    const handleResultsChange = (newResults: string[]) => {
+        setResults(newResults);
+        if (newResults.length > 0) {
+            callAI(newResults);
+        } else {
+            setAiGeneratedText('');
+        }
+    };
+
     useEffect(() => {
         ws.connect('ws://localhost:8765', (msg: unknown) => {
             console.log('Received message:', msg);
@@ -64,10 +94,13 @@ export default function Home() {
                     setNotificationMessage('Chưa hiểu hành động');
                     setShowNotification(true);
                 } else {
-                    setResultWebSocket(msg.label);
+                    // Thêm counter để đảm bảo mỗi lần update là một giá trị mới
+                    setResultWebSocket((prev) => ({
+                        label: msg.label,
+                        timestamp: Date.now(),
+                        counter: prev ? prev.counter + 1 : 0
+                    }));
                 }
-            } else {
-                console.error('Invalid message format:', msg);
             }
         });
 
@@ -121,18 +154,10 @@ export default function Home() {
             setAiGeneratedText(fullInput.join(' ')); // fallback nếu lỗi
         }
     };
-    useEffect(() => {
-        if (!resultWebSocket) return;
 
-        setResults((prevResults) => {
-            const updated = [...prevResults, resultWebSocket];
-            callAI(updated); // Gọi AI với toàn bộ kết quả
-            return updated;
-        });
-    }, [resultWebSocket]);
     // Xử lý xóa kết quả
     const clearResults = () => {
-        setResultWebSocket('');
+        setResultWebSocket(null);
         setAiGeneratedText('');
         setResultTracking('Đã xóa kết quả, đang chờ dữ liệu mới...');
         setClearSignal(true);
@@ -233,7 +258,8 @@ export default function Home() {
                             </h2>
                             <div className="mb-6">
                                 <ResultPanel
-                                    result={resultWebSocket}
+                                    result={resultWebSocket?.label}
+                                    resultKey={resultWebSocket?.counter}
                                     label="Predicted Gesture"
                                     clearSignal={clearSignal}
                                 />

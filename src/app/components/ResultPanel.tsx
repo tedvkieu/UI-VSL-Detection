@@ -1,39 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface ResultPanelProps {
     result?: string;
+    resultKey?: number;
     label?: string;
-    clearSignal?: boolean; // Tín hiệu xóa từ component cha
+    clearSignal?: boolean;
+    onResultsChange?: (results: string[]) => void;
 }
 
 const ResultPanel: React.FC<ResultPanelProps> = ({
     result,
+    resultKey,
     label,
     clearSignal,
 }) => {
     const [results, setResults] = useState<string[]>([]);
     const [fadeIn, setFadeIn] = useState(false);
+    const lastResultRef = useRef<{value: string, timestamp: number} | null>(null);
 
     // Thêm kết quả mới vào danh sách
     useEffect(() => {
         if (result) {
+            console.log("ResultPanel received new result:", result, "with key:", resultKey);
             setResults((prevResults) => {
-                const last = prevResults[prevResults.length - 1];
-                if (last !== result) {
-                    setFadeIn(true);
-                    // Reset fade-in effect after animation
-                    setTimeout(() => setFadeIn(false), 600);
-                    return [...prevResults, result];
-                }
-                return prevResults;
+                const newResults = [...prevResults, result];
+                console.log("Updated results in ResultPanel:", newResults);
+                setFadeIn(true);
+                // Reset fade-in effect after animation
+                setTimeout(() => setFadeIn(false), 600);
+                // Thông báo cho component cha
+                return newResults;
             });
         }
-    }, [result]);
+    }, [result, resultKey]);
 
     // Khi nhận tín hiệu clear từ cha, reset danh sách kết quả
     useEffect(() => {
         if (clearSignal) {
             setResults([]);
+           
         }
     }, [clearSignal]);
 
@@ -53,26 +58,13 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
     const handleRemoveFadeIn = () => {
         setResults((prevResults) => {
             const newResults = [...prevResults];
-            newResults.pop(); // Xoá phần tử fadeIn hiện tại
-
-            // Nếu còn phần tử, set lại fadeIn để hiện phần tử cuối
-            if (newResults.length > 0) {
-                const popped = newResults.pop(); // Lấy phần tử cuối để hiện lại
-                if (popped) {
-                    // Thêm lại phần tử cuối để làm fadeIn mới
-                    setTimeout(() => {
-                        setFadeIn(true);
-                        setTimeout(() => setFadeIn(false), 600);
-                    }, 0);
-                    return [...newResults, popped];
-                }
-            }
-
+            newResults.pop(); 
             return newResults;
         });
     };
 
     const currentResult = results[results.length - 1];
+    const currentResultIndex = results.length - 1;
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 text-sm min-h-[100px] transition-all">
@@ -89,7 +81,7 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {results.slice(0, -1).map((res, idx) => (
                                     <span
-                                        key={idx}
+                                        key={`${res}-${idx}`}
                                         className={`${getResultColor(
                                             idx
                                         )} bg-gray-50 text-sm px-3 py-1 rounded-full`}>
@@ -104,7 +96,7 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
                                 fadeIn ? 'animate-fade-in' : ''
                             }`}>
                             <div className="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500 flex justify-between items-center">
-                                <span className="font-medium text-indigo-800 text-lg">
+                                <span className={`font-medium text-lg ${getResultColor(currentResultIndex)}`}>
                                     {currentResult}
                                 </span>
                                 <button

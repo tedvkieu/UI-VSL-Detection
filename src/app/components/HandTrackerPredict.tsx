@@ -209,7 +209,7 @@ export default function HandTrackerPredict({
     };
 
     return (
-        <div className="relative rounded-xl overflow-hidden w-full h-[480px] shadow-2xl">
+        <div className="relative rounded-xl overflow-hidden w-full aspect-[4/3] max-w-[640px] mx-auto shadow-2xl">
             {/* Gradient border effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 p-1 rounded-xl z-0">
                 <div className="absolute inset-0 bg-black rounded-lg"></div>
