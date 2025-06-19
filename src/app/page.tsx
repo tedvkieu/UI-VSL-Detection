@@ -32,20 +32,12 @@ function isLabelMessage(msg: unknown): msg is LabelMessage {
 }
 
 export default function Home() {
-    // Thay đổi: Sử dụng object với timestamp và counter
-    const [resultWebSocket, setResultWebSocket] = useState<{
-        label: string;
-        timestamp: number;
-        counter: number;
-    } | null>(null);
-    
     const [resultTracking, setResultTracking] = useState<string>(
         'Đang chờ dữ liệu...'
     );
     const [showNotification, setShowNotification] = useState(false);
     const [notificationMessage, setNotificationMessage] = useState('');
     const router = useRouter();
-
     const [isRecording, setIsRecording] = useState<boolean>(false);
     const frameCountRef = useRef<number>(0);
     const hasHandsRef = useRef<boolean>(false);
@@ -53,33 +45,32 @@ export default function Home() {
     const [messages, setMessages] = useState<unknown[]>([]);
     const [clearSignal, setClearSignal] = useState(false);
     const [results, setResults] = useState<string[]>([]);
-
     const framesDataRef = useRef<number[][]>([]);
-
     const [aiGeneratedText, setAiGeneratedText] = useState<string>('');
 
-    // Thay đổi: useEffect sẽ luôn chạy vì resultWebSocket luôn là object mới
-    useEffect(() => {
-        if (!resultWebSocket) return;
-
-        console.log("Processing new result:", resultWebSocket);
+    // Xử lý khi nhận được kết quả từ WebSocket
+    const handleNewResult = (label: string) => {
         setResults((prevResults) => {
-            // Luôn thêm kết quả mới vào, không kiểm tra trùng lặp
-            const updated = [...prevResults, resultWebSocket.label];
-            console.log("Updated results:", updated);
-            callAI(updated);
+            const updated = [...prevResults, label];
+            console.log("New result added:", label, "Updated results:", updated);
             return updated;
         });
-    }, [resultWebSocket]);
+    };
 
-    // Thêm handler cho việc thay đổi kết quả từ ResultPanel
-    const handleResultsChange = (newResults: string[]) => {
-        setResults(newResults);
-        if (newResults.length > 0) {
-            callAI(newResults);
+    // Gọi AI khi results thay đổi
+    useEffect(() => {
+        console.log("Results changed:", results);
+        if (results.length > 0) {
+            callAI(results);
         } else {
             setAiGeneratedText('');
         }
+    }, [results]);
+
+    // Xử lý thay đổi results từ ResultPanel
+    const handleResultsChange = (newResults: string[]) => {
+        console.log("Results changed from ResultPanel:", newResults);
+        setResults(newResults);
     };
 
     useEffect(() => {
@@ -94,12 +85,7 @@ export default function Home() {
                     setNotificationMessage('Chưa hiểu hành động');
                     setShowNotification(true);
                 } else {
-                    // Thêm counter để đảm bảo mỗi lần update là một giá trị mới
-                    setResultWebSocket((prev) => ({
-                        label: msg.label,
-                        timestamp: Date.now(),
-                        counter: prev ? prev.counter + 1 : 0
-                    }));
+                    handleNewResult(msg.label);
                 }
             }
         });
@@ -157,8 +143,8 @@ export default function Home() {
 
     // Xử lý xóa kết quả
     const clearResults = () => {
-        setResultWebSocket(null);
         setAiGeneratedText('');
+        setResults([]);
         setResultTracking('Đã xóa kết quả, đang chờ dữ liệu mới...');
         setClearSignal(true);
     };
@@ -236,7 +222,7 @@ export default function Home() {
                                     <span className="text-sm text-gray-600">
                                         {isRecording
                                             ? 'Recording'
-                                            : 'Waiting for hand detection'}
+                                            : 'Chờ phát hiện cử chỉ tay'}
                                     </span>
                                 </div>
                             </div>
@@ -245,7 +231,7 @@ export default function Home() {
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-indigo-100">
                             <FramePanel
                                 result={resultTracking}
-                                label="Collection Status"
+                                label="Trạng thái thu thập"
                             />
                         </div>
                     </div>
@@ -254,14 +240,14 @@ export default function Home() {
                     <div className="flex flex-col space-y-6">
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-indigo-100">
                             <h2 className="text-xl font-semibold text-indigo-700 mb-4">
-                                Recognition Results
+                                Bảng Kết Quả Nhận Diện
                             </h2>
                             <div className="mb-6">
                                 <ResultPanel
-                                    result={resultWebSocket?.label}
-                                    resultKey={resultWebSocket?.counter}
-                                    label="Predicted Gesture"
+                                    results={results}
+                                    label="Dự đoán cử chỉ"
                                     clearSignal={clearSignal}
+                                    onResultsChange={handleResultsChange}
                                 />
                             </div>
                             <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
@@ -270,7 +256,7 @@ export default function Home() {
                                 </h3>
                                 <ResultPanelAI
                                     result={aiGeneratedText}
-                                    label="Natural Language"
+                                    label="Tiếng Việt tự nhiên"
                                     clearSignal={clearSignal}
                                 />
                             </div>
@@ -278,7 +264,7 @@ export default function Home() {
 
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-indigo-100">
                             <h2 className="text-xl font-semibold text-indigo-700 mb-4">
-                                Actions
+                                Thao Tác
                             </h2>
                             <div className="flex space-x-4">
                                 <button
@@ -295,7 +281,7 @@ export default function Home() {
                                             clipRule="evenodd"
                                         />
                                     </svg>
-                                    <span>Clear Results</span>
+                                    <span>Xóa toàn bộ kết quả</span>
                                 </button>
                             </div>
                         </div>

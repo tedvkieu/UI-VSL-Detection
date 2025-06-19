@@ -28,19 +28,19 @@ export default function RootLayout({
         <html lang="en">
             <head>
                 {/* Load MediaPipe libraries in the correct order */}
-                <script
+                <script type="module"
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
                     defer></script>
-                <script
+                <script type="module"
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
                     defer></script>
-                <script
+                <script type="module"
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
                     defer></script>
-                <script
+                <script type="module"
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
                     defer></script>
-                <script
+                <script type="module"
                     src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js"
                     defer></script>
             </head>

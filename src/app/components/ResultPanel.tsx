@@ -1,46 +1,42 @@
+'use client'
 import React, { useState, useEffect, useRef } from 'react';
 
 interface ResultPanelProps {
-    result?: string;
-    resultKey?: number;
+    results: string[]; // Thay đổi: nhận trực tiếp mảng results
     label?: string;
     clearSignal?: boolean;
-    onResultsChange?: (results: string[]) => void;
+    onResultsChange: (results: string[]) => void; // Bắt buộc phải có
 }
 
 const ResultPanel: React.FC<ResultPanelProps> = ({
-    result,
-    resultKey,
+    results,
     label,
     clearSignal,
+    onResultsChange,
 }) => {
-    const [results, setResults] = useState<string[]>([]);
+    const [localResults, setLocalResults] = useState<string[]>([]);
     const [fadeIn, setFadeIn] = useState(false);
-    const lastResultRef = useRef<{value: string, timestamp: number} | null>(null);
 
-    // Thêm kết quả mới vào danh sách
+    // Đồng bộ với results từ component cha
     useEffect(() => {
-        if (result) {
-            console.log("ResultPanel received new result:", result, "with key:", resultKey);
-            setResults((prevResults) => {
-                const newResults = [...prevResults, result];
-                console.log("Updated results in ResultPanel:", newResults);
-                setFadeIn(true);
-                // Reset fade-in effect after animation
-                setTimeout(() => setFadeIn(false), 600);
-                // Thông báo cho component cha
-                return newResults;
-            });
+        console.log('ResultPanel received new results:', results);
+        
+        // Kiểm tra xem có phần tử mới được thêm vào không
+        if (results.length > localResults.length) {
+            setFadeIn(true);
+            setTimeout(() => setFadeIn(false), 600);
         }
-    }, [result, resultKey]);
+        
+        setLocalResults(results);
+    }, [results]);
 
-    // Khi nhận tín hiệu clear từ cha, reset danh sách kết quả
+    // Xử lý tín hiệu clear từ component cha
     useEffect(() => {
         if (clearSignal) {
-            setResults([]);
-           
+            setLocalResults([]);
+            onResultsChange([]);
         }
-    }, [clearSignal]);
+    }, [clearSignal, onResultsChange]);
 
     // Generate a unique color for each result
     const getResultColor = (index: number) => {
@@ -55,16 +51,23 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
         return colors[index % colors.length];
     };
 
-    const handleRemoveFadeIn = () => {
-        setResults((prevResults) => {
-            const newResults = [...prevResults];
-            newResults.pop(); 
-            return newResults;
-        });
+    // Xóa phần tử cuối cùng
+    const handleRemoveLatest = () => {
+        const newResults = [...localResults];
+        newResults.pop();
+        setLocalResults(newResults);
+        onResultsChange(newResults);
     };
 
-    const currentResult = results[results.length - 1];
-    const currentResultIndex = results.length - 1;
+    // Xóa một phần tử cụ thể
+    const handleRemoveItem = (indexToRemove: number) => {
+        const newResults = localResults.filter((_, index) => index !== indexToRemove);
+        setLocalResults(newResults);
+        onResultsChange(newResults);
+    };
+
+    const currentResult = localResults[localResults.length - 1];
+    const currentResultIndex = localResults.length - 1;
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 text-sm min-h-[100px] transition-all">
@@ -75,18 +78,25 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
                     </span>
                 )}
 
-                {results.length > 0 ? (
+                {localResults.length > 0 ? (
                     <div className="w-full space-y-2">
-                        {results.length > 1 && (
+                        {localResults.length > 1 && (
                             <div className="flex flex-wrap gap-2 mb-3">
-                                {results.slice(0, -1).map((res, idx) => (
-                                    <span
+                                {localResults.slice(0, -1).map((res, idx) => (
+                                    <div
                                         key={`${res}-${idx}`}
-                                        className={`${getResultColor(
-                                            idx
-                                        )} bg-gray-50 text-sm px-3 py-1 rounded-full`}>
-                                        {res}
-                                    </span>
+                                        className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
+                                        <span
+                                            className={`${getResultColor(idx)} text-sm`}>
+                                            {res}
+                                        </span>
+                                        {/* <button
+                                            onClick={() => handleRemoveItem(idx)}
+                                            className="text-red-400 hover:text-red-600 text-xs ml-1"
+                                            title="Xóa item này">
+                                            ×
+                                        </button> */}
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -96,14 +106,17 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
                                 fadeIn ? 'animate-fade-in' : ''
                             }`}>
                             <div className="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500 flex justify-between items-center">
-                                <span className={`font-medium text-lg ${getResultColor(currentResultIndex)}`}>
+                                <span
+                                    className={`font-medium text-lg ${getResultColor(
+                                        currentResultIndex
+                                    )}`}>
                                     {currentResult}
                                 </span>
                                 <button
-                                    onClick={handleRemoveFadeIn}
-                                    className="text-red-500 hover:text-red-700 ml-4"
-                                    title="Xoá kết quả mới nhất">
-                                    Clear
+                                    onClick={handleRemoveLatest}
+                                    className="text-red-500 hover:text-red-700 ml-4 px-2 py-1 rounded text-sm"
+                                    title="Xóa kết quả mới nhất">
+                                    Clear Latest
                                 </button>
                             </div>
                         </div>

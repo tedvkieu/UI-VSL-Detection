@@ -58,7 +58,7 @@ export default function Notification({
                 </svg>
             </div>
             <div>
-                <h4 className="font-medium text-white">Notification</h4>
+                <h4 className="font-medium text-white">Thông Báo</h4>
                 <p className="text-white text-opacity-90">{message}</p>
             </div>
             <button
