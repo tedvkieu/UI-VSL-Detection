@@ -8,18 +8,13 @@ import FramePanel from './components/FramePanel';
 import Notification from './components/Notification';
 import { useRouter } from 'next/navigation';
 import ResultPanelAI from './components/ResultPanelAI';
+import Image from 'next/image';
 
 const ws = new WebSocketService();
 
-interface LabelMessage {
-    label: string;
-    confidence: number;
-    status: string;
-}
-
-function isLabelMessage(msg: unknown): msg is LabelMessage {
+// Restore isLabelMessage type guard
+function isLabelMessage(msg: unknown): msg is { label: string; confidence: number; status: string } {
     if (!msg || typeof msg !== 'object') return false;
-
     const message = msg as Record<string, unknown>;
     return (
         'label' in message &&
@@ -42,7 +37,6 @@ export default function Home() {
     const frameCountRef = useRef<number>(0);
     const hasHandsRef = useRef<boolean>(false);
     const noHandsFrameCountRef = useRef<number>(0);
-    const [messages, setMessages] = useState<unknown[]>([]);
     const [clearSignal, setClearSignal] = useState(false);
     const [results, setResults] = useState<string[]>([]);
     const framesDataRef = useRef<number[][]>([]);
@@ -76,7 +70,6 @@ export default function Home() {
     useEffect(() => {
         ws.connect('ws://localhost:8765', (msg: unknown) => {
             console.log('Received message:', msg);
-            setMessages((prev) => [...prev, msg]);
 
             if (isLabelMessage(msg)) {
                 console.log('Valid label message:', msg);
@@ -161,10 +154,13 @@ export default function Home() {
             <header className="bg-white shadow-md py-4 px-6">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="flex items-center space-x-3">
-                        <img
+                        <Image
                             src="/taytalk-logo.svg"
                             alt="TayTalk Logo"
+                            width={60}
+                            height={60}
                             className="h-15 w-auto"
+                            priority
                         />
                         <span className="text-xl font-semibold text-indigo-700 pt-1">
                             Vietnamese Sign Language Translator

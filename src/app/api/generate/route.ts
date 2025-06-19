@@ -43,7 +43,7 @@ Mục tiêu: Giúp người dùng hiểu nội dung của câu ký hiệu một 
         );
 
         const result = await response.json();
-        console.log('Check result: ', result);
+        // /console.log('Check result: ', result);
         const text =
             result.choices?.[0]?.message?.content ??
             'Không có phản hồi hợp lệ.';

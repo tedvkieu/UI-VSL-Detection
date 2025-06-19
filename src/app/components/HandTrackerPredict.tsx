@@ -91,6 +91,7 @@ export default function HandTrackerPredict({
 
     useEffect(() => {
         initMediapipe();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const extractBothHandsLandmarks = (results: Results): number[] => {
@@ -126,78 +127,84 @@ export default function HandTrackerPredict({
     ) => {
         if (!results.multiHandLandmarks) return;
 
-        results.multiHandLandmarks.forEach((landmarks: any, index: number) => {
-            const handedness =
-                results.multiHandedness?.[index]?.label ?? 'Right';
-            //   const color = handedness === 'Left' ? [0, 255, 0] : [255, 0, 0];
+        results.multiHandLandmarks.forEach(
+            (
+                landmarks: { x: number; y: number; z: number }[],
+                index: number
+            ) => {
+                const handedness =
+                    results.multiHandedness?.[index]?.label ?? 'Right';
 
-            // Draw connections with gradient effect
-            ctx.lineWidth = 3;
-            for (const [start, end] of HAND_CONNECTIONS) {
-                if (landmarks[start] && landmarks[end]) {
-                    const startPt = landmarks[start];
-                    const endPt = landmarks[end];
+                ctx.lineWidth = 3;
+                for (const [start, end] of HAND_CONNECTIONS) {
+                    if (landmarks[start] && landmarks[end]) {
+                        const startPt = landmarks[start];
+                        const endPt = landmarks[end];
 
-                    const gradient = ctx.createLinearGradient(
-                        startPt.x * canvas.width,
-                        startPt.y * canvas.height,
-                        endPt.x * canvas.width,
-                        endPt.y * canvas.height
-                    );
+                        const gradient = ctx.createLinearGradient(
+                            startPt.x * canvas.width,
+                            startPt.y * canvas.height,
+                            endPt.x * canvas.width,
+                            endPt.y * canvas.height
+                        );
 
-                    if (handedness === 'Left') {
-                        gradient.addColorStop(0, 'rgba(0, 255, 0, 0.7)');
-                        gradient.addColorStop(1, 'rgba(0, 196, 255, 0.7)');
-                    } else {
-                        gradient.addColorStop(0, 'rgba(255, 0, 0, 0.7)');
-                        gradient.addColorStop(1, 'rgba(255, 153, 0, 0.7)');
+                        if (handedness === 'Left') {
+                            gradient.addColorStop(0, 'rgba(0, 255, 0, 0.7)');
+                            gradient.addColorStop(1, 'rgba(0, 196, 255, 0.7)');
+                        } else {
+                            gradient.addColorStop(0, 'rgba(255, 0, 0, 0.7)');
+                            gradient.addColorStop(1, 'rgba(255, 153, 0, 0.7)');
+                        }
+
+                        ctx.strokeStyle = gradient;
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            startPt.x * canvas.width,
+                            startPt.y * canvas.height
+                        );
+                        ctx.lineTo(
+                            endPt.x * canvas.width,
+                            endPt.y * canvas.height
+                        );
+                        ctx.stroke();
                     }
+                }
 
-                    ctx.strokeStyle = gradient;
-                    ctx.beginPath();
-                    ctx.moveTo(
-                        startPt.x * canvas.width,
-                        startPt.y * canvas.height
-                    );
-                    ctx.lineTo(endPt.x * canvas.width, endPt.y * canvas.height);
-                    ctx.stroke();
+                // Draw landmarks with glow effect
+                for (const pt of landmarks) {
+                    if (
+                        pt &&
+                        typeof pt.x === 'number' &&
+                        typeof pt.y === 'number'
+                    ) {
+                        // Glow effect
+                        ctx.shadowColor =
+                            handedness === 'Left'
+                                ? 'rgba(0, 255, 0, 0.8)'
+                                : 'rgba(255, 0, 0, 0.8)';
+                        ctx.shadowBlur = 10;
+
+                        // Draw joint
+                        ctx.beginPath();
+                        ctx.arc(
+                            pt.x * canvas.width,
+                            pt.y * canvas.height,
+                            6,
+                            0,
+                            2 * Math.PI
+                        );
+                        ctx.fillStyle =
+                            handedness === 'Left'
+                                ? 'rgba(0, 255, 0, 0.8)'
+                                : 'rgba(255, 0, 0, 0.8)';
+                        ctx.fill();
+
+                        // Reset shadow
+                        ctx.shadowBlur = 0;
+                    }
                 }
             }
-
-            // Draw landmarks with glow effect
-            for (const pt of landmarks) {
-                if (
-                    pt &&
-                    typeof pt.x === 'number' &&
-                    typeof pt.y === 'number'
-                ) {
-                    // Glow effect
-                    ctx.shadowColor =
-                        handedness === 'Left'
-                            ? 'rgba(0, 255, 0, 0.8)'
-                            : 'rgba(255, 0, 0, 0.8)';
-                    ctx.shadowBlur = 10;
-
-                    // Draw joint
-                    ctx.beginPath();
-                    ctx.arc(
-                        pt.x * canvas.width,
-                        pt.y * canvas.height,
-                        6,
-                        0,
-                        2 * Math.PI
-                    );
-                    ctx.fillStyle =
-                        handedness === 'Left'
-                            ? 'rgba(0, 255, 0, 0.8)'
-                            : 'rgba(255, 0, 0, 0.8)';
-                    ctx.fill();
-
-                    // Reset shadow
-                    ctx.shadowBlur = 0;
-                }
-            }
-        });
+        );
 
         // Add recording indicator when active
         if (isRecording) {

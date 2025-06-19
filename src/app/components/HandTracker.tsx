@@ -2,12 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import { useMediapipe } from '../hooks/useMediapipe';
-import { WebSocketService } from '../services/ws-Service';
 import { HAND_CONNECTIONS } from '../constants/handLandmarks';
 import type { Results } from '@mediapipe/hands';
 
 interface HandTrackerProps {
-    isRecording: boolean;
     setIsRecording: (isRecording: boolean) => void;
     setResult: (result: string) => void;
     frameCountRef: React.MutableRefObject<number>;
@@ -15,12 +13,10 @@ interface HandTrackerProps {
     noHandsFrameCountRef: React.MutableRefObject<number>;
     framesDataRef: React.MutableRefObject<number[][]>;
     setFramesData: (data: number[][]) => void;
-    ws: WebSocketService;
     sendFrames: () => void;
 }
 
 export default function HandTracker({
-    isRecording,
     setIsRecording,
     setResult,
     frameCountRef,
@@ -28,7 +24,6 @@ export default function HandTracker({
     noHandsFrameCountRef,
     framesDataRef,
     setFramesData,
-    ws,
 }: HandTrackerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -95,7 +90,7 @@ export default function HandTracker({
 
     useEffect(() => {
         initMediapipe();
-    }, []);
+    }, [initMediapipe]);
 
     const extractBothHandsLandmarks = (results: Results): number[] => {
         const leftHand = Array(63).fill(0.0);
@@ -129,82 +124,6 @@ export default function HandTracker({
         return [...leftHand, ...rightHand];
     };
 
-    const handleHandsDetected = (
-        results: Results,
-        canvas: HTMLCanvasElement,
-        ctx: CanvasRenderingContext2D,
-        keypoints: number[]
-    ) => {
-        if (keypoints.length > 0) {
-            console.log('Hand detected, keypoints:', keypoints.length);
-            framesDataRef.current.push(keypoints);
-            console.log('Current frames count:', framesDataRef.current.length);
-        }
-
-        noHandsFrameCountRef.current = 0;
-
-        if (!hasHandsRef.current) {
-            hasHandsRef.current = true;
-            setIsRecording(true);
-            framesDataRef.current = [];
-            frameCountRef.current = 0;
-            setResult('Đang thu thập dữ liệu...');
-        }
-
-        framesDataRef.current.push(keypoints);
-        frameCountRef.current += 1;
-        setFramesData([...framesDataRef.current]);
-        drawHandLandmarks(results, canvas, ctx);
-
-        setResult(
-            `Đã phát hiện ${
-                results.multiHandLandmarks?.length || 0
-            } bàn tay | Frame: ${frameCountRef.current}`
-        );
-    };
-
-    const handleNoHandsDetected = () => {
-        // Tăng bộ đếm frame không có tay
-        noHandsFrameCountRef.current += 1;
-
-        // Nếu đã thu thập dữ liệu và không phát hiện tay đủ lâu -> kết thúc hành động
-        if (
-            hasHandsRef.current &&
-            noHandsFrameCountRef.current >= MISSING_THRESHOLD
-        ) {
-            console.log('Kết thúc thu thập do không phát hiện tay đủ lâu');
-            hasHandsRef.current = false;
-
-            if (isRecording && framesDataRef.current.length > 0) {
-                setIsRecording(false);
-                // Gửi dữ liệu thu thập được đến server
-                ws.send({ frames: framesDataRef.current });
-                setResult(
-                    `Đã kết thúc thu thập: ${frameCountRef.current} frames`
-                );
-                console.log(
-                    'Tổng số frames đã thu thập:',
-                    frameCountRef.current
-                );
-                // Lưu dữ liệu frames để hiển thị nếu cần
-                setFramesData(framesDataRef.current);
-
-                console.log(
-                    'check framessssssssssssssssssssssssssssss: ',
-                    framesDataRef.current
-                );
-                // Reset dữ liệu frames
-                framesDataRef.current = [];
-            }
-        }
-
-        setResult(
-            hasHandsRef.current
-                ? `Đang tìm kiếm tay... (${noHandsFrameCountRef.current}/${MISSING_THRESHOLD})`
-                : 'Không phát hiện bàn tay'
-        );
-    };
-
     const drawHandLandmarks = (
         results: Results,
         canvas: HTMLCanvasElement,
@@ -212,7 +131,7 @@ export default function HandTracker({
     ) => {
         if (!results.multiHandLandmarks) return;
 
-        results.multiHandLandmarks.forEach((landmarks: any, index: number) => {
+        results.multiHandLandmarks.forEach((landmarks: {x: number, y: number, z: number}[], index: number) => {
             const handedness =
                 results.multiHandedness?.[index]?.label ?? 'Right';
             const color = handedness === 'Left' ? [0, 255, 0] : [255, 0, 0];

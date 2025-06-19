@@ -1,8 +1,5 @@
 import { MutableRefObject } from 'react';
-import { Results, Handedness } from '@mediapipe/hands';
-
-// Define a type that matches the MediaPipe Results interface
-type MediaPipeResults = Results;
+import { Results } from '@mediapipe/hands';
 
 export function useMediapipe(
     videoRef: MutableRefObject<HTMLVideoElement | null>,

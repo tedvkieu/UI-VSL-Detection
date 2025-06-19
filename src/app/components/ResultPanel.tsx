@@ -1,5 +1,5 @@
-'use client'
-import React, { useState, useEffect, useRef } from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 
 interface ResultPanelProps {
     results: string[]; // Thay đổi: nhận trực tiếp mảng results
@@ -20,15 +20,15 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
     // Đồng bộ với results từ component cha
     useEffect(() => {
         console.log('ResultPanel received new results:', results);
-        
+
         // Kiểm tra xem có phần tử mới được thêm vào không
         if (results.length > localResults.length) {
             setFadeIn(true);
             setTimeout(() => setFadeIn(false), 600);
         }
-        
+
         setLocalResults(results);
-    }, [results]);
+    }, [results, localResults.length]);
 
     // Xử lý tín hiệu clear từ component cha
     useEffect(() => {
@@ -59,13 +59,6 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
         onResultsChange(newResults);
     };
 
-    // Xóa một phần tử cụ thể
-    const handleRemoveItem = (indexToRemove: number) => {
-        const newResults = localResults.filter((_, index) => index !== indexToRemove);
-        setLocalResults(newResults);
-        onResultsChange(newResults);
-    };
-
     const currentResult = localResults[localResults.length - 1];
     const currentResultIndex = localResults.length - 1;
 
@@ -87,15 +80,11 @@ const ResultPanel: React.FC<ResultPanelProps> = ({
                                         key={`${res}-${idx}`}
                                         className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
                                         <span
-                                            className={`${getResultColor(idx)} text-sm`}>
+                                            className={`${getResultColor(
+                                                idx
+                                            )} text-sm`}>
                                             {res}
                                         </span>
-                                        {/* <button
-                                            onClick={() => handleRemoveItem(idx)}
-                                            className="text-red-400 hover:text-red-600 text-xs ml-1"
-                                            title="Xóa item này">
-                                            ×
-                                        </button> */}
                                     </div>
                                 ))}
                             </div>

@@ -1,87 +1,8 @@
 'use client';
 import { useRef, useState, useEffect } from 'react';
-import Head from 'next/head';
-import path from 'path';
-import { Hands, Results, Landmark } from '@mediapipe/hands';
-import { Camera } from '@mediapipe/camera_utils';
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
 import HandTrackerCollect from '../components/HandTrackerCollect';
 import FramePanel from '../components/FramePanel';
-import { WebSocketService } from '../services/ws-Service';
 import { useRouter } from 'next/navigation';
-import fs from 'fs';
-
-// Type definitions for MediaPipe objects
-interface DataRow {
-    [key: number]: number;
-}
-
-interface CollectionState {
-    isRecording: boolean;
-    framesCollected: number;
-    fileIndex: number;
-    label: string;
-    rootDir: string;
-    startTime: number;
-}
-
-// Define MediaPipe types
-interface ResultsListener {
-    (results: Results): void;
-}
-
-interface HandsConfig {
-    locateFile?: (file: string) => string;
-    maxNumHands?: number;
-    modelComplexity?: number;
-    minDetectionConfidence?: number;
-    minTrackingConfidence?: number;
-}
-
-interface InputMap {
-    image: HTMLVideoElement | HTMLCanvasElement | HTMLImageElement;
-}
-
-interface HandsInstance {
-    onResults: (callback: ResultsListener) => void;
-    send: (inputs: InputMap) => Promise<void>;
-    close: () => void;
-    setOptions: (options: HandsConfig) => void;
-}
-
-interface CameraConfig {
-    onFrame: () => void;
-    width?: number;
-    height?: number;
-}
-
-interface CameraInstance {
-    start: () => void;
-}
-
-// Extend Window interface to include MediaPipe objects
-declare global {
-    interface Window {
-        Hands: typeof Hands;
-        Camera: new (videoElement: HTMLVideoElement, options: { onFrame: () => void; width?: number; height?: number }) => { start: () => void };
-        drawConnectors: (
-            canvas: CanvasRenderingContext2D,
-            landmarks: Landmark[],
-            connections: readonly [number, number][],
-            options?: { color?: string; lineWidth?: number }
-        ) => void;
-        drawLandmarks: (
-            canvas: CanvasRenderingContext2D,
-            landmarks: Landmark[],
-            options?: { color?: string; fillColor?: string; lineWidth?: number; radius?: number }
-        ) => void;
-    }
-}
-
-const TIMESTEPS = 30;
-
-// Tạo một đối tượng WebSocketService giả để truyền vào HandTracker
-const dummyWs = new WebSocketService();
 
 export default function MakeData() {
     const [resultTracking, setResultTracking] = useState<string>('Đang chờ dữ liệu...');
