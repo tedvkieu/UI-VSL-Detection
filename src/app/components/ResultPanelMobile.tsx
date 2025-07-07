@@ -40,15 +40,17 @@ const ResultPanelMobile: React.FC<ResultPanelMobileProps> = ({
                 </div>
             )}
             <div className="flex-1 p-2 overflow-y-auto">
-                <div className="flex flex-col gap-2 overflow-y-auto max-h-48 scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-transparent py-1">
+                <div className="flex flex-wrap gap-2 overflow-y-auto max-h-full">
                     {localResults.length > 0 ? (
                         localResults.map((res, idx) => (
                             <div
                                 key={idx}
-                                className="flex items-center bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1 whitespace-nowrap min-w-[48px] max-w-full text-ellipsis overflow-hidden relative">
-                                <span className="text-indigo-700 font-medium text-xs truncate">{res}</span>
+                                className="flex items-center bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1 text-xs max-w-full">
+                                <span className="text-indigo-700 font-medium break-words">
+                                    {res}
+                                </span>
                                 <button
-                                    className="ml-2 text-[10px] text-red-400 hover:text-red-600 focus:outline-none"
+                                    className="ml-2 text-[10px] text-red-400 hover:text-red-600 focus:outline-none flex-shrink-0"
                                     onClick={() => handleRemove(idx)}
                                     title="Xóa">
                                     ✕
@@ -56,7 +58,9 @@ const ResultPanelMobile: React.FC<ResultPanelMobileProps> = ({
                             </div>
                         ))
                     ) : (
-                        <span className="text-gray-400 italic px-2">Đang chờ kết quả...</span>
+                        <span className="text-gray-400 italic text-xs">
+                            Đang chờ kết quả...
+                        </span>
                     )}
                 </div>
             </div>

@@ -10,7 +10,7 @@ interface NotificationProps {
 export default function Notification({
     message,
     show,
-    duration = 3000,
+    duration = 1000,
     onClose,
 }: NotificationProps) {
     const [isVisible, setIsVisible] = useState(false);

@@ -56,7 +56,7 @@ export default function MobileLandscapePage() {
 
     useEffect(() => {
         ws.connect(
-            'wss://e87b-123-21-229-51.ngrok-free.app',
+            'wss://8216-115-78-238-159.ngrok-free.app',
             (msg: unknown) => {
                 if (isLabelMessage(msg)) {
                     if (msg.label === 'unknown' || msg.confidence < 0.9) {
@@ -141,8 +141,8 @@ export default function MobileLandscapePage() {
                 </div>
             </div>
             {/* Results 30% */}
-            <div className="w-[30vw] h-full flex flex-col items-center justify-center p-2 space-y-4">
-                <div className="w-full h-[60vh]">
+            <div className="w-[30vw] h-full flex flex-col p-2 overflow-y-auto">
+                <div className="flex-1 mb-2">
                     <ResultPanelMobile
                         results={results}
                         label="Kết quả"
@@ -150,7 +150,7 @@ export default function MobileLandscapePage() {
                         onResultsChange={handleResultsChange}
                     />
                 </div>
-                <div className="w-full h-[20vh]">
+                <div className="flex-1 mb-2">
                     <ResultPanelAIMobile
                         result={aiGeneratedText}
                         label="AI dịch"
@@ -158,7 +158,7 @@ export default function MobileLandscapePage() {
                     />
                 </div>
                 <button
-                    className="mt-4 w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all shadow text-sm"
+                    className="w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all shadow text-sm flex-shrink-0"
                     onClick={clearResults}>
                     Xóa kết quả
                 </button>

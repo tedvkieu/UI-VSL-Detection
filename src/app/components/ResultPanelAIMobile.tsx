@@ -22,19 +22,19 @@ const ResultPanelAIMobile: React.FC<ResultPanelAIMobileProps> = ({
     }, [clearSignal]);
 
     return (
-        <div className="bg-white rounded-md shadow border border-gray-100 px-2 py-1 text-xs w-full">
+        <div className="bg-white rounded-md shadow border border-gray-100 h-full flex flex-col">
             {label && (
-                <div className="text-gray-500 text-[10px] font-semibold mb-1 pl-1">
+                <div className="text-gray-500 text-[10px] font-semibold p-2 border-b border-gray-100 flex-shrink-0">
                     {label}
                 </div>
             )}
-            <div className="overflow-y-auto max-h-32 scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-transparent py-1">
+            <div className="flex-1 p-2 overflow-y-auto">
                 {localResult ? (
                     <span className="text-indigo-800 font-medium text-xs whitespace-pre-line break-words">
                         {localResult}
                     </span>
                 ) : (
-                    <span className="text-gray-400 italic px-2">
+                    <span className="text-gray-400 italic text-xs">
                         Đang chờ kết quả...
                     </span>
                 )}

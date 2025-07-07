@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { InferenceClient } from '@huggingface/inference';
 import { env } from '../../../env.mjs';
+
+const client = new InferenceClient(env.HF_TOKEN); // Token lấy từ https://huggingface.co/settings/tokens
 
 export async function POST(req: NextRequest) {
     try {
         const { input } = await req.json();
-        console.log('Check input: ', input);
-        const apiKey = env.OPEN_ROUTER_KEY;
+        console.log('Check input:', input);
 
-        const response = await fetch(
-            'https://openrouter.ai/api/v1/chat/completions',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${apiKey}`,
-                    'X-Title': 'VSL-Sign-App', // Tên app (tùy chọn)
-                },
-                body: JSON.stringify({
-                    model: 'moonshotai/kimi-dev-72b:free',
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `Bạn là một trợ lý AI có nhiệm vụ chuyển đổi câu từ ngôn ngữ ký hiệu sang tiếng Việt tự nhiên.
+        const chatCompletion = await client.chatCompletion({
+            provider: 'nebius',
+            model: 'google/gemma-2-2b-it',
+            messages: [
+                {
+                    role: 'system',
+                    content: `Bạn là một trợ lý AI có nhiệm vụ chuyển đổi câu từ ngôn ngữ ký hiệu sang tiếng Việt tự nhiên.
 Nguyên tắc:
 - Phải giữ nguyên ý nghĩa gốc, không được dịch sai hoặc tự suy diễn vượt quá ngữ cảnh.
 - Nếu đầu vào là các ký tự rời rạc tạo thành tên riêng (ví dụ: "K I Ê U") thì hãy ghép lại thành một từ (→ "KIÊU").
@@ -30,29 +24,23 @@ Nguyên tắc:
 - Nếu thông tin chưa đủ rõ ràng để hình thành một câu hoàn chỉnh, thì giữ nguyên.
 - Khi thông tin đủ rõ ràng, hãy viết lại thành câu tiếng Việt tự nhiên, đúng ngữ pháp và dễ hiểu.
 Mục tiêu: Giúp người dùng hiểu nội dung của câu ký hiệu một cách tự nhiên nhất mà không làm mất thông tin gốc.`,
-                        },
-                        {
-                            role: 'user',
-                            content: input,
-                        },
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 200,
-                }),
-            }
-        );
+                },
+                {
+                    role: 'user',
+                    content: input,
+                },
+            ],
+        });
 
-        const result = await response.json();
-        // /console.log('Check result: ', result);
         const text =
-            result.choices?.[0]?.message?.content ??
+            chatCompletion?.choices?.[0]?.message?.content ??
             'Không có phản hồi hợp lệ.';
 
         return NextResponse.json({ result: text });
     } catch (error) {
-        console.error('OpenRouter fetch error:', error);
+        console.error('Hugging Face API error:', error);
         return NextResponse.json(
-            { result: 'Lỗi khi gọi OpenRouter API.' },
+            { result: 'Lỗi khi gọi Hugging Face API.' },
             { status: 500 }
         );
     }

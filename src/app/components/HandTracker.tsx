@@ -28,7 +28,7 @@ export default function HandTracker({
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     // Tham số này giống với Python - số frame liên tục không thấy tay để kết thúc một hành động
-    const MISSING_THRESHOLD = 10;
+    const MISSING_THRESHOLD = 5;
 
     const processResults = (results: Results) => {
         const canvas = canvasRef.current;
@@ -131,47 +131,55 @@ export default function HandTracker({
     ) => {
         if (!results.multiHandLandmarks) return;
 
-        results.multiHandLandmarks.forEach((landmarks: {x: number, y: number, z: number}[], index: number) => {
-            const handedness =
-                results.multiHandedness?.[index]?.label ?? 'Right';
-            const color = handedness === 'Left' ? [0, 255, 0] : [255, 0, 0];
+        results.multiHandLandmarks.forEach(
+            (
+                landmarks: { x: number; y: number; z: number }[],
+                index: number
+            ) => {
+                const handedness =
+                    results.multiHandedness?.[index]?.label ?? 'Right';
+                const color = handedness === 'Left' ? [0, 255, 0] : [255, 0, 0];
 
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            for (const [start, end] of HAND_CONNECTIONS) {
-                if (landmarks[start] && landmarks[end]) {
-                    const startPt = landmarks[start];
-                    const endPt = landmarks[end];
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                for (const [start, end] of HAND_CONNECTIONS) {
+                    if (landmarks[start] && landmarks[end]) {
+                        const startPt = landmarks[start];
+                        const endPt = landmarks[end];
 
-                    ctx.beginPath();
-                    ctx.moveTo(
-                        startPt.x * canvas.width,
-                        startPt.y * canvas.height
-                    );
-                    ctx.lineTo(endPt.x * canvas.width, endPt.y * canvas.height);
-                    ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            startPt.x * canvas.width,
+                            startPt.y * canvas.height
+                        );
+                        ctx.lineTo(
+                            endPt.x * canvas.width,
+                            endPt.y * canvas.height
+                        );
+                        ctx.stroke();
+                    }
+                }
+
+                for (const pt of landmarks) {
+                    if (
+                        pt &&
+                        typeof pt.x === 'number' &&
+                        typeof pt.y === 'number'
+                    ) {
+                        ctx.beginPath();
+                        ctx.arc(
+                            pt.x * canvas.width,
+                            pt.y * canvas.height,
+                            5,
+                            0,
+                            2 * Math.PI
+                        );
+                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        ctx.fill();
+                    }
                 }
             }
-
-            for (const pt of landmarks) {
-                if (
-                    pt &&
-                    typeof pt.x === 'number' &&
-                    typeof pt.y === 'number'
-                ) {
-                    ctx.beginPath();
-                    ctx.arc(
-                        pt.x * canvas.width,
-                        pt.y * canvas.height,
-                        5,
-                        0,
-                        2 * Math.PI
-                    );
-                    ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                    ctx.fill();
-                }
-            }
-        });
+        );
     };
 
     return (

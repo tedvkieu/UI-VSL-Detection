@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import HandTrackerPredict from './components/HandTrackerPredict';
-import ResultPanel from './components/ResultPanel';
-import { WebSocketService } from './services/ws-Service';
-import FramePanel from './components/FramePanel';
-import Notification from './components/Notification';
-import { useRouter } from 'next/navigation';
-import ResultPanelAI from './components/ResultPanelAI';
+
 import Image from 'next/image';
+import HandTrackerContinuous from '../components/HandTrackerContinuous';
+import { WebSocketService } from '../services/ws-Service';
+import FramePanel from '../components/FramePanel';
+import ResultPanel from '../components/ResultPanel';
+import ResultPanelAI from '../components/ResultPanelAI';
+import Notification from '../components/Notification';
+import { useRouter } from 'next/navigation';
 
 const ws = new WebSocketService();
 
@@ -44,8 +45,25 @@ export default function Home() {
     const framesDataRef = useRef<number[][]>([]);
     const [aiGeneratedText, setAiGeneratedText] = useState<string>('');
 
+    // Thêm ref để theo dõi nhãn cuối cùng trong phiên hiện tại
+    const lastLabelInCurrentSessionRef = useRef<string | null>(null);
+    const isNewSessionRef = useRef<boolean>(true);
+
     // Xử lý khi nhận được kết quả từ WebSocket
     const handleNewResult = (label: string) => {
+        // Kiểm tra xem có phải nhãn trùng lặp trong phiên hiện tại không
+        if (
+            lastLabelInCurrentSessionRef.current === label &&
+            !isNewSessionRef.current
+        ) {
+            console.log(`Bỏ qua nhãn trùng lặp trong phiên hiện tại: ${label}`);
+            return;
+        }
+
+        // Cập nhật nhãn cuối cùng và đánh dấu không phải phiên mới
+        lastLabelInCurrentSessionRef.current = label;
+        isNewSessionRef.current = false;
+
         setResults((prevResults) => {
             const updated = [...prevResults, label];
             console.log(
@@ -58,11 +76,18 @@ export default function Home() {
         });
     };
 
+    // Xử lý khi bắt đầu phiên mới (khi phát hiện tay sau khi không có tay)
+    const handleNewSession = () => {
+        console.log('Bắt đầu phiên mới - reset duplicate prevention');
+        isNewSessionRef.current = true;
+        lastLabelInCurrentSessionRef.current = null;
+    };
+
     // Gọi AI khi results thay đổi
     useEffect(() => {
         console.log('Results changed:', results);
         if (results.length > 0) {
-            callAI(results);
+            //callAI(results);
         } else {
             setAiGeneratedText('');
         }
@@ -117,29 +142,29 @@ export default function Home() {
         }
     };
 
-    const callAI = async (fullInput: string[]) => {
-        try {
-            const inputText = fullInput.join(' ');
-            const res = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ input: inputText }),
-            });
+    // const callAI = async (fullInput: string[]) => {
+    //     try {
+    //         const inputText = fullInput.join(' ');
+    //         const res = await fetch('/api/generate', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify({ input: inputText }),
+    //         });
 
-            if (!res.ok) {
-                const text = await res.text();
-                console.error('Server error:', text);
-                throw new Error('Server responded with an error');
-            }
+    //         if (!res.ok) {
+    //             const text = await res.text();
+    //             console.error('Server error:', text);
+    //             throw new Error('Server responded with an error');
+    //         }
 
-            const data = await res.json();
-            console.log('AI response:', data);
-            setAiGeneratedText(data.result);
-        } catch (err) {
-            console.error('Error calling AI:', err);
-            setAiGeneratedText(fullInput.join(' ')); // fallback nếu lỗi
-        }
-    };
+    //         const data = await res.json();
+    //         console.log('AI response:', data);
+    //         setAiGeneratedText(data.result);
+    //     } catch (err) {
+    //         console.error('Error calling AI:', err);
+    //         setAiGeneratedText(fullInput.join(' ')); // fallback nếu lỗi
+    //     }
+    // };
 
     // Xử lý xóa kết quả
     const clearResults = () => {
@@ -147,6 +172,10 @@ export default function Home() {
         setResults([]);
         setResultTracking('Đã xóa kết quả, đang chờ dữ liệu mới...');
         setClearSignal(true);
+
+        // Reset duplicate prevention khi xóa kết quả
+        lastLabelInCurrentSessionRef.current = null;
+        isNewSessionRef.current = true;
     };
 
     useEffect(() => {
@@ -202,7 +231,7 @@ export default function Home() {
                                 Camera Feed
                             </h2>
                             <div className="flex justify-center">
-                                <HandTrackerPredict
+                                <HandTrackerContinuous
                                     isRecording={isRecording}
                                     setIsRecording={setIsRecording}
                                     setResult={setResultTracking}
@@ -212,6 +241,7 @@ export default function Home() {
                                     framesDataRef={framesDataRef}
                                     ws={ws}
                                     sendFrames={sendFramesToPredict}
+                                    onNewSession={handleNewSession}
                                 />
                             </div>
                             <div className="mt-4">
@@ -295,7 +325,7 @@ export default function Home() {
             <Notification
                 message={notificationMessage}
                 show={showNotification}
-                duration={3000}
+                duration={500}
                 onClose={() => setShowNotification(false)}
             />
         </div>
