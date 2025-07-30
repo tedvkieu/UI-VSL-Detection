@@ -11,17 +11,17 @@ This project includes:
 
 ## 🧩 Repositories
 
-1. 🔬 **Core Prediction Engine**
-   - 📂 [`vsl-core`]([https://github.com/yourusername/vsl-core](https://github.com/tedvkieu/Core-VSL-Detect))
-   - Description: Python-based LSTM model for classifying hand gestures into text. Supports real-time inference and communication via WebSocket.
+1. 🔬 **Core Prediction Engine**  
+   📂 [`vsl-core`](https://github.com/tedvkieu/Core-VSL-Detect)  
+   Description: Python-based LSTM model for classifying hand gestures into text. Supports real-time inference and communication via WebSocket.
    
-2. 📱 **Mobile Application**
-   - 📂 [`vsl-mobile`]([https://github.com/yourusername/vsl-mobile](https://github.com/tedvkieu/VSL-App-Mobile))
-   - Description: Built with React Native (Expo), this app captures user sign gestures via camera and streams them to the backend for prediction.
+2. 📱 **Mobile Application**  
+   📂 [`vsl-mobile`](https://github.com/tedvkieu/VSL-App-Mobile)  
+   Description: Built with React Native (Expo), this app captures user sign gestures via camera and streams them to the backend for prediction.
 
-3. 💻 **Web Application**
-   - 📂 [`vsl-web`]([https://github.com/yourusername/vsl-web](https://github.com/tedvkieu/UI-VSL-Detection))
-   - Description: A modern web interface built with Next.js that connects to the WebSocket server and displays the translated text in real-time.
+3. 💻 **Web Application**  
+   📂 [`vsl-web`](https://github.com/tedvkieu/UI-VSL-Detection)  
+   Description: A modern web interface built with Next.js that connects to the WebSocket server and displays the translated text in real-time.
 
 ---
 
